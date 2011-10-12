@@ -1,0 +1,34 @@
+qidtrace  version 0.01
+===============================
+
+qidtrace is a filter for sendmail log files.
+It follows sendmails queue id strings so that sequences of log
+lines can be found.
+
+The program reads the input sendmail log file in one pass.
+
+The input data file is maillog.mx.
+The initial release provides an abbreviated 9999-line input file.
+
+Execute the tests using prove (specify the local lib dir
+if the module is not installed in the @INC path):
+  prove -I lib -vr t
+
+The initial version comprises a framework, and the core methods
+are not included.  They are to be written as an exercise for the
+student.
+
+
+
+Version 0.01, Tue2011_1011_22:33 
+
+Some files in the qidtrace2 project dir were copied from the qidtrace
+project earlier today, including test code and data files.
+
+Then the two main code files were replaced with the original files
+from the project code by Jeff M, and the initial commit to the
+git repository was made:
+  bin/qidtrace
+  lib/Sendmail/QidTrace.pm
+
+
