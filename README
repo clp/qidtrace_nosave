@@ -32,3 +32,12 @@ git repository was made:
   lib/Sendmail/QidTrace.pm
 
 
+Version 0.02, Thu2011_1013_13:51 
+
+The files in the qidtrace2 project dir were copied to the
+qidtrace_nosave project dir, including test code and data files.
+New code will be built in qidtrace_nosave, and qidtrace2 will be
+abandoned.
+
+
+

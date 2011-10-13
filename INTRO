@@ -1,4 +1,4 @@
-qidtrace2
+qidtrace_nosave
 
 A project to learn some techniques of Perl coding, based on
 searching a log file for specific data.
@@ -10,8 +10,15 @@ project - see this repository at github:
 My second solution to this problem is described in another
 project - see this repository at github:
   https://github.com/clp/qidtrace
+
 Some files from the qidtrace project were copied to qidtrace2
 on Tue2011_1011_22:26, then modified from that point.
+
+My third solution to this problem was renamed
+from qidtrace2 to qidtrace_nosave.
+The files from qidtrace2 were copied here on Thu2011_1013, 
+to the qidtrace_nosave project, which will be continued.
+qidtrace2 will be abandoned.
 
 The original files for qidtrace were built by Jeff M., and
 provided on 2011_0727.
