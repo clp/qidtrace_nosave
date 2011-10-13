@@ -19,10 +19,24 @@ our @EXPORT_OK = qw/match_line/;
 sub match_line {
     my $email = shift;
     my $line = shift;
-    return('', '') unless $line;
-
-    return('foo', 'bar');
+    my $qid;
+    return ( '', '' ) unless $line;
+    if ( $line !~ m/<$email>/ ) { 
+        $email = '' 
+    }
+    else {
+        #TBD Save qid and check buffer for any matching lines w/ same qid.
+        # $email = '' 
+    }
+    if ( $line =~ m/.*:? ([a-zA-Z\d]{14}).? ?.*/ ) {
+        $qid = $1;
+    }
+    else {
+        $qid = '';
+    }
+    return ( $email, $qid );
 }
+
 
 package Sendmail::QidTrace::Queue;
 
@@ -63,5 +77,12 @@ sub drain_queue {
     my ($self) = @_;
 
 }
+
+
+sub size_of_leading_array {
+    my $self = shift;
+    return scalar @{ $self->{_leading} };
+}
+
 
 1;
