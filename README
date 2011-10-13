@@ -1,4 +1,4 @@
-qidtrace  version 0.01
+qidtrace_nosave  version 0.02
 ===============================
 
 qidtrace is a filter for sendmail log files.
