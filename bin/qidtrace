@@ -37,6 +37,19 @@ my $qt = new Sendmail::QidTrace::Queue({match        => $email_address,
                                         line_numbers => $emit_line_numbers});
 while (<>) {
     chomp;
+    my $line;
+    my $num;
+    $qt->push_onto_leading_array(
+        {   num  => $.,
+            line => $_
+        }
+    );
+
+    #DBG print "DBG.while: \$.: ,$.,\n" if ($DEBUG);
+
+    # Fill the _leading array before checking for matches.
+    if ( $qt->size_of_leading_array > $window_size ) {
+
     my ($match_email, $match_qid) = match_line($email_address, $_);
     # if ($match_email || $match_qid) {
     #     $qt->add_match({match => $match_email,
@@ -46,7 +59,8 @@ while (<>) {
     #                               : substr($_, $output_start_column)),
     #                     num   => $. });
     # }
-}
+    }  # End if (leading array > window_size )
+}  # End while()
 # $qt->drain_queue();
 
 exit;
