@@ -87,10 +87,55 @@ sub push_onto_leading_array {
     push @{ $self->{_leading} }, $line;
 }
 
+sub shift_off_leading_array {
+    my $self = shift;
+    return shift @{ $self->{_leading} };
+}
+
+
+sub shift_off_trailing_array {
+    my $self = shift;
+    return shift @{ $self->{_trailing} };
+}
+
+
+
+sub push_onto_trailing_array {
+    my $self = shift;
+    my $line = shift;
+    push @{ $self->{_trailing} }, $line;
+}
+
+
+sub get_leading_array {
+    my $self = shift;
+    return @{ $self->{_leading} };
+}
+
+sub get_trailing_array {
+    my $self = shift;
+    return @{ $self->{_trailing} };
+}
 
 sub size_of_leading_array {
     my $self = shift;
     return scalar @{ $self->{_leading} };
+}
+
+sub size_of_trailing_array {
+    my $self = shift;
+    return scalar @{ $self->{_trailing} };
+}
+
+
+sub get_seen_qids {
+    my $self = shift;
+    return keys %{ $self->{_seen} };
+}
+
+sub get_seen_hash {
+    my $self = shift;
+    return $self->{_seen};
 }
 
 
