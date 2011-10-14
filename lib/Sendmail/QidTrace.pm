@@ -79,6 +79,15 @@ sub drain_queue {
 }
 
 
+#
+# Accessors to get & set the queue.
+sub push_onto_leading_array {
+    my $self = shift;
+    my $line = shift;
+    push @{ $self->{_leading} }, $line;
+}
+
+
 sub size_of_leading_array {
     my $self = shift;
     return scalar @{ $self->{_leading} };
