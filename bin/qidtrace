@@ -29,7 +29,7 @@ unless (GetOptions(
     die usage();
 }
 unless ($email_address) {
-    die "no email address found on command line\n\n", usage();
+    die "$prog died: No email address found on command line\n\n", usage();
 }
 
 my $qt = new Sendmail::QidTrace::Queue({match        => $email_address,
