@@ -50,18 +50,72 @@ while (<>) {
     # Fill the _leading array before checking for matches.
     if ( $qt->size_of_leading_array > $window_size ) {
 
-    my ($match_email, $match_qid) = match_line($email_address, $_);
-    # if ($match_email || $match_qid) {
-    #     $qt->add_match({match => $match_email,
-    #                     qid   => $match_qid,
-    #                     line  => ($output_length
-    #                               ? substr($_, $output_start_column, $output_length)
-    #                               : substr($_, $output_start_column)),
-    #                     num   => $. });
-    # }
+        my ($match_email, $match_qid) = match_line($email_address, $_);
+        if ($match_email || $match_qid) {
+            $qt->add_match({match => $match_email,
+                            qid   => $match_qid,
+                            line  => ($output_length
+                                      ? substr($_, $output_start_column, $output_length)
+                                      : substr($_, $output_start_column)),
+                            num   => $. });
+        }
+
+        # Check buffer for matching qid's.
+        #TBD.
+
+        # Print all the lines stored in %_seen.
+        #TBD.
+        print_matching_lines();
+
+        # Erase content of %_seen.
+        #TBD.
+
     }  # End if (leading array > window_size )
 }  # End while()
 # $qt->drain_queue();
+
+
+
+# Print all matching lines from the %_seen hash.
+sub print_matching_lines {
+    foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
+        #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
+        my $h = shift( @{ ${ $qt->get_seen_hash }{$k} } );
+        print "${$h}{num}; " if ($emit_line_numbers);
+        print "${$h}{line}\n";
+
+        foreach ( @{ ${ $qt->get_seen_hash }{$k} } ) {
+            print "**** ";
+            print "${$_}{num}; " if ($emit_line_numbers);
+            print "${$_}{line}\n";
+        }
+    }
+}
+
+=pod
+
+=head2 Print All Matching Lines
+
+Use two loops to print the collection of o/p lines, grouped 
+and sorted by qid.
+
+The outer loop dereferences the hash ref,
+  selects the keys (which are qid's),
+  sorts the list by qid,
+  then iterates over its block using each qid as the index value.
+  The first entry is extracted from the AoH & printed.
+
+The inner loop takes the qid as a key for the %_seen hash,
+  gets the hash value for that key (which is a ref to an array),
+  dereferences the array,
+  iterates over every member of that array,
+  dereferences the entry, which is a hash ref,
+  extracts the values for line number and line,
+  and prints those two values.
+
+=cut
+
+
 
 exit;
 

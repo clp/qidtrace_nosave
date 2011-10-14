@@ -22,14 +22,19 @@ sub match_line {
     my $qid;
     return ( '', '' ) unless $line;
     if ( $line !~ m/<$email>/ ) { 
-        $email = '' 
+        $email = '';
+        #TBD?: Check current qid for a match.  NO, do this below, after first if-else.
     }
     else {
-        #TBD Save qid and check buffer for any matching lines w/ same qid.
-        # $email = '' 
+        #TBD Save line in %_seen; then check buffer for any matching lines w/ same qid.
+        #TBD
     }
+    #TBD: Compare current qid to saved qid's in %_seen.
+    # If a match, return the qid so it will be added %_seen.
+    # If no match, return ''.
     if ( $line =~ m/.*:? ([a-zA-Z\d]{14}).? ?.*/ ) {
-        $qid = $1;
+        $current_qid = $1;
+        #TBD
     }
     else {
         $qid = '';
@@ -65,9 +70,20 @@ sub new {
 #  num   => the line number of the log line
 #
 sub add_match {
-    my ($self, $mo) = @_;
+    my ( $self, $mo ) = @_;
 
+    #TBD: Verify i/p is OK.
+    # If not, print error & exit or return.
+    #
+    # Add the line to save to the _seen hash,
+    # using qid as key.
+    # Store a ref to that hash in an array.
+    my $key   = "$mo->{qid}";
+    my $value = $mo;
+    push @{ $self->{_seen}{$key} }, $value;
 }
+
+
 
 #
 # drain the window of all remaining matches.
