@@ -8,6 +8,7 @@ use Getopt::Long;
 use Sendmail::QidTrace qw/match_line/;
 
 our $VERSION = '0.02';
+our @matching_qids;  # TBD: Global var used in match_line().
 
 my $prog = $0;
 $prog =~ s{\A.*/}{};    # strip leading path, if any

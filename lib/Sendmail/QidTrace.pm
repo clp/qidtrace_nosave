@@ -20,21 +20,33 @@ sub match_line {
     my $email = shift;
     my $line = shift;
     my $qid;
+    #TBR our @matching_qids;
     return ( '', '' ) unless $line;
     if ( $line !~ m/<$email>/ ) { 
         $email = '';
         #TBD?: Check current qid for a match.  NO, do this below, after first if-else.
     }
     else {
-        #TBD Save line in %_seen; then check buffer for any matching lines w/ same qid.
-        #TBD
+        # The current line will be saved in %_seen, when the caller gets this
+        # email addr returned to it, and runs add_match().
+        # Also save the qid found on the line w/ the matching $email.
+        if ( $line =~ m/.*:? ([a-zA-Z\d]{14}).? ?.*/ ) {
+            $qid = $1;
+            push @matching_qids, $qid;
+            return ( $email, $qid );
+        }
     }
-    #TBD: Compare current qid to saved qid's in %_seen.
-    # If a match, return the qid so it will be added %_seen.
+    #TBD: Compare current qid to saved qid's in @matching_qids, ie,
+    # in the current buffer.
+    # If a match, return the qid so it will be added to %_seen by caller.
     # If no match, return ''.
     if ( $line =~ m/.*:? ([a-zA-Z\d]{14}).? ?.*/ ) {
-        $current_qid = $1;
-        #TBD
+        my $current_qid = $1;
+        foreach my $qid ( @matching_qids ) {
+            if ( $current_qid eq $qid ) {
+                return ($email, $qid);
+            }
+        }
     }
     else {
         $qid = '';
