@@ -39,6 +39,7 @@ sub match_line {
     # in the current buffer.
     # If a match, return the qid so it will be added to %_seen by caller.
     # If no match, return ''.
+    #TBD: Rewrite as grep?: if (grep $current_qid, @Main::matching_qids ) {return...};
     if ( $line =~ m/.*:? ([a-zA-Z\d]{14}).? ?.*/ ) {
         my $current_qid = $1;
         foreach my $qid ( @Main::matching_qids ) {

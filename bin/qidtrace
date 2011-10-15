@@ -10,14 +10,14 @@ use Sendmail::QidTrace qw/match_line/;
 our $VERSION = '0.02';
 our @matching_qids;  # TBD: Global var used in match_line().
 
-my $DEBUG = 0;    # Set to 1 to enable debug stmts.
+my $DEBUG = 1;    # Set to 1 to enable debug stmts.
                   # Set to 0 to run tests & for normal operation.
 
 
 my $prog = $0;
 $prog =~ s{\A.*/}{};    # strip leading path, if any
 my $window_size = 100;
-$window_size = 1 if $DEBUG;  #DBG
+$window_size = 10 if $DEBUG;  #DBG
 my $email_address;
 my $emit_line_numbers = 0;
 my $output_start_column = 0;
@@ -80,12 +80,20 @@ while (<>) {
         #TBD.
         $qt->erase_seen_hash();
 
+        # Save line to trailing array if not added to %_seen hash.
+        $qt->push_onto_trailing_array($line);
+        if ( $qt->size_of_trailing_array >= $window_size ) {
+            #OK.ORG $line = ${ $qt->shift_off_trailing_array() }{line};
+            $qt->shift_off_trailing_array() ;
+            ##TBD: Maybe check the line for matching qid before tossing.
+        }
+
     }  # End if (leading array > window_size )
 }  # End while()
 # $qt->drain_queue();
 
 
-# Print all matching lines from the %_seen hash.
+# Print all matching lines from the %_seen hash; hash holds individual lines only.
 sub print_matching_lines {
     foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
         #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
@@ -106,7 +114,7 @@ sub print_matching_lines {
 
 # =begin comment
 
-# Print all matching lines from the %_seen hash.
+# Print all matching lines from the %_seen hash; hash holds refs to hashes of line & line number.
 sub print_matching_lines_0_HASH {
     foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
         #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
