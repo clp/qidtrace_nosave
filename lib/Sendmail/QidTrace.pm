@@ -32,7 +32,7 @@ sub match_line {
         # Also save the qid found on the line w/ the matching $email.
         if ( $line =~ m/.*:? ([a-zA-Z\d]{14}).? ?.*/ ) {
             $qid = $1;
-            push @matching_qids, $qid;
+            push @Main::matching_qids, $qid;
             return ( $email, $qid );
         }
     }
@@ -42,11 +42,12 @@ sub match_line {
     # If no match, return ''.
     if ( $line =~ m/.*:? ([a-zA-Z\d]{14}).? ?.*/ ) {
         my $current_qid = $1;
-        foreach my $qid ( @matching_qids ) {
+        foreach my $qid ( @Main::matching_qids ) {
             if ( $current_qid eq $qid ) {
                 return ($email, $qid);
             }
         }
+        $qid = '';
     }
     else {
         $qid = '';
