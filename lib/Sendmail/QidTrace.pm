@@ -24,7 +24,6 @@ sub match_line {
     return ( '', '' ) unless $line;
     if ( $line !~ m/<$email>/ ) { 
         $email = '';
-        #TBD?: Check current qid for a match.  NO, do this below, after first if-else.
     }
     else {
         # The current line will be saved in %_seen, when the caller gets this
@@ -165,6 +164,12 @@ sub get_seen_qids {
 sub get_seen_hash {
     my $self = shift;
     return $self->{_seen};
+}
+
+sub erase_seen_hash {
+    my $self = shift;
+    #TBR? return $self->{_seen} = ();
+    $self->{_seen} = ();
 }
 
 
