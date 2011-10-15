@@ -10,9 +10,14 @@ use Sendmail::QidTrace qw/match_line/;
 our $VERSION = '0.02';
 our @matching_qids;  # TBD: Global var used in match_line().
 
+my $DEBUG = 0;    # Set to 1 to enable debug stmts.
+                  # Set to 0 to run tests & for normal operation.
+
+
 my $prog = $0;
 $prog =~ s{\A.*/}{};    # strip leading path, if any
 my $window_size = 100;
+$window_size = 1 if $DEBUG;  #DBG
 my $email_address;
 my $emit_line_numbers = 0;
 my $output_start_column = 0;
@@ -40,24 +45,26 @@ while (<>) {
     chomp;
     my $line;
     my $num;
-    $qt->push_onto_leading_array(
-        {   num  => $.,
-            line => $_
-        }
-    );
+    $qt->push_onto_leading_array($_);
+      #TBR? {   num  => $.,  #TBD: Use $qt for num instead of hash here?
+      #TBR? line => $_
+      #TBR? }
+    #TBR? );
 
     #DBG print "DBG.while: \$.: ,$.,\n" if ($DEBUG);
 
     # Fill the _leading array before checking for matches.
     if ( $qt->size_of_leading_array > $window_size ) {
 
-        my ($match_email, $match_qid) = match_line($email_address, $_);
+        my $line = $qt->shift_off_leading_array();  #TBD: Keep or use hash from @_leading?
+
+        my ($match_email, $match_qid) = match_line($email_address, $line);
         if ($match_email || $match_qid) {
             $qt->add_match({match => $match_email,
                             qid   => $match_qid,
                             line  => ($output_length
-                                      ? substr($_, $output_start_column, $output_length)
-                                      : substr($_, $output_start_column)),
+                                      ? substr($line, $output_start_column, $output_length)
+                                      : substr($line, $output_start_column)),
                             num   => $. });
         }
 
@@ -66,15 +73,16 @@ while (<>) {
 
         # Print all the lines stored in %_seen.
         #TBD.
-        print_matching_lines();
+        #TBD print_matching_lines();  #TBD?: if (keys %_seen)
+        print_matching_lines()  if ($qt->get_seen_hash);
 
         # Erase content of %_seen.
         #TBD.
+        $qt->erase_seen_hash();
 
     }  # End if (leading array > window_size )
 }  # End while()
 # $qt->drain_queue();
-
 
 
 # Print all matching lines from the %_seen hash.
@@ -92,6 +100,33 @@ sub print_matching_lines {
         }
     }
 }
+
+
+
+
+# =begin comment
+
+# Print all matching lines from the %_seen hash.
+sub print_matching_lines_0_HASH {
+    foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
+        #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
+        my $h = shift( @{ ${ $qt->get_seen_hash }{$k} } );
+        print "${$h}{num}; " if ($emit_line_numbers);
+        print "${$h}{line}\n";
+
+        foreach ( @{ ${ $qt->get_seen_hash }{$k} } ) {
+            print "**** ";
+            print "${$_}{num}; " if ($emit_line_numbers);
+            print "${$_}{line}\n";
+        }
+    }
+}
+
+# =end comment
+
+# =cut
+
+
 
 =pod
 
