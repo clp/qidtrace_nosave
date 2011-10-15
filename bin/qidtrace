@@ -69,15 +69,60 @@ while (<>) {
         }
 
         # Check buffer for matching qid's.
-        #TBD.
+            # Check for matching qid's in the buffer.
+            my @emitted; #TBR
+            foreach
+                my $lref ( $qt->get_leading_array, $qt->get_trailing_array )
+            {
+                #TBR my %lh            = %$lref;
+                #TBR my $ln_from_buf   = $lh{line};
+                #TBR my $lnum_from_buf = $lh{num};
+                my $lnum_from_buf;  #TBR
+                my $ln_from_buf = $lref;
+
+                #TBD: Removed last clause from 'if' stmt below:
+                  #TBD: && ( !grep ( /$lnum_from_buf/, @emitted ) ) )
+                if (   defined $ln_from_buf
+                    && ( $ln_from_buf =~ /$match_qid/ )
+                     )
+                {
+                    my ( $match_email, $match_qid )
+                        = match_line( $email_address, $ln_from_buf );
+
+                    ## Skip current line to avoid adding a duplicate line in o/p,
+                    ## if it has the matching email addr and a matching qid.
+                    ## Only add this line to the o/p when it is shifted off the
+                    ## leading array to check its email addr.
+                    next if ( $match_email eq $email_address );
+
+                    ##DBG print "DBG.buffer_match_found: \$num: ,$num,\n"
+                    ##DBG if ($DEBUG);
+                    $qt->add_match(
+                        {   match => $match_email,
+                            qid   => $match_qid,
+                            line  => (
+                                $output_length
+                                ? substr(
+                                    $ln_from_buf, $output_start_column,
+                                    $output_length
+                                    )
+                                : substr(
+                                    $ln_from_buf, $output_start_column
+                                )
+                            ),
+                            num => $lnum_from_buf
+                        }
+                    );
+                    push @emitted, $lnum_from_buf;
+                }
+            }    # End inner loop: check entire buffer for matching qid's.
+
+
 
         # Print all the lines stored in %_seen.
-        #TBD.
-        #TBD print_matching_lines();  #TBD?: if (keys %_seen)
         print_matching_lines()  if ($qt->get_seen_hash);
 
         # Erase content of %_seen.
-        #TBD.
         $qt->erase_seen_hash();
 
         # Save line to trailing array if not added to %_seen hash.
