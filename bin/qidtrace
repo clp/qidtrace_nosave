@@ -80,7 +80,7 @@ while (<>) {
                 my $lnum_from_buf;  #TBR
                 my $ln_from_buf = $lref;
 
-                #TBD: Removed last clause from 'if' stmt below:
+                #TBD: Removed this last clause from 'if' stmt below:
                   #TBD: && ( !grep ( /$lnum_from_buf/, @emitted ) ) )
                 if (   defined $ln_from_buf
                     && ( $ln_from_buf =~ /$match_qid/ )
@@ -144,6 +144,7 @@ sub print_matching_lines {
         #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
         my $h = shift( @{ ${ $qt->get_seen_hash }{$k} } );
         print "${$h}{num}; " if ($emit_line_numbers);
+        #ORG  print "${$h}{line}\n";
         print "${$h}{line}\n";
 
         foreach ( @{ ${ $qt->get_seen_hash }{$k} } ) {
