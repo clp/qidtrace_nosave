@@ -55,6 +55,7 @@ sub match_line {
     else {
         $qid = '';
     }
+    #TBD: Remove the two assignments to $qid above, & add it here only.
     return ( $email, $qid );
 }
 
