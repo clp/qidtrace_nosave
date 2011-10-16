@@ -18,14 +18,16 @@ our @EXPORT_OK = qw/match_line/;
 
 sub match_line {
     my $email = shift;
-    my $line = shift;
+    my $line  = shift;
     my $qid;
+
     #TBR our @matching_qids;
     return ( '', '' ) unless $line;
-    if ( $line !~ m/<$email>/ ) { 
+    if ( $line !~ m/<$email>/ ) {
         $email = '';
     }
     else {
+
         # The current line will be saved in %_seen, when the caller gets this
         # email addr returned to it, and runs add_match().
         # Also save the qid found on the line w/ the matching $email.
@@ -35,16 +37,17 @@ sub match_line {
             return ( $email, $qid );
         }
     }
-    #TBD: Compare current qid to saved qid's in @matching_qids, ie,
-    # in the current buffer.
-    # If a match, return the qid so it will be added to %_seen by caller.
-    # If no match, return ''.
-    #TBD: Rewrite as grep?: if (grep $current_qid, @Main::matching_qids ) {return...};
+
+#TBD: Compare current qid to saved qid's in @matching_qids, ie,
+# in the current buffer.
+# If a match, return the qid so it will be added to %_seen by caller.
+# If no match, return ''.
+#TBD: Rewrite as grep?: if (grep $current_qid, @Main::matching_qids ) {return...};
     if ( $line =~ m/.*:? ([a-zA-Z\d]{14}).? ?.*/ ) {
         my $current_qid = $1;
-        foreach my $qid ( @Main::matching_qids ) {
+        foreach my $qid (@Main::matching_qids) {
             if ( $current_qid eq $qid ) {
-                return ($email, $qid);
+                return ( $email, $qid );
             }
         }
         $qid = '';
@@ -55,21 +58,21 @@ sub match_line {
     return ( $email, $qid );
 }
 
-
 package Sendmail::QidTrace::Queue;
 
 use strict;
 
 sub new {
     my $invocant = shift;
-    my $class    = ref($invocant) || $invocant;
+    my $class = ref($invocant) || $invocant;
 
-    my $queue = { _leading  => [],  # winsize matching lines before
-                  _trailing => [],  #                        and after
-                  _seen     => {},  # track which lines we have already emitted
+    my $queue = {
+        _leading  => [],    # winsize matching lines before
+        _trailing => [],    #                        and after
+        _seen     => {},    # track which lines we have already emitted
     };
     my $args = shift || {};
-    while (my ($k, $v) = each(%$args)) {
+    while ( my ( $k, $v ) = each(%$args) ) {
         $queue->{$k} = $v;
     }
     return bless $queue, $class;
@@ -96,8 +99,6 @@ sub add_match {
     push @{ $self->{_seen}{$key} }, $value;
 }
 
-
-
 #
 # drain the window of all remaining matches.
 #  should be called after the end of the input stream
@@ -106,7 +107,6 @@ sub drain_queue {
     my ($self) = @_;
 
 }
-
 
 #
 # Accessors to get & set the queue.
@@ -121,20 +121,16 @@ sub shift_off_leading_array {
     return shift @{ $self->{_leading} };
 }
 
-
 sub shift_off_trailing_array {
     my $self = shift;
     return shift @{ $self->{_trailing} };
 }
-
-
 
 sub push_onto_trailing_array {
     my $self = shift;
     my $line = shift;
     push @{ $self->{_trailing} }, $line;
 }
-
 
 sub get_leading_array {
     my $self = shift;
@@ -156,7 +152,6 @@ sub size_of_trailing_array {
     return scalar @{ $self->{_trailing} };
 }
 
-
 sub get_seen_qids {
     my $self = shift;
     return keys %{ $self->{_seen} };
@@ -169,9 +164,9 @@ sub get_seen_hash {
 
 sub erase_seen_hash {
     my $self = shift;
+
     #TBR? return $self->{_seen} = ();
     $self->{_seen} = ();
 }
-
 
 1;
