@@ -17,7 +17,7 @@ my $DEBUG = 1;    # Set to 1 to enable debug stmts.
 my $prog = $0;
 $prog =~ s{\A.*/}{};    # strip leading path, if any
 my $window_size = 100;
-$window_size = 10 if $DEBUG;  #DBG
+$window_size = 20 if $DEBUG;  #DBG
 my $email_address;
 my $emit_line_numbers = 0;
 my $output_start_column = 0;
@@ -66,7 +66,6 @@ while (<>) {
                                       ? substr($line, $output_start_column, $output_length)
                                       : substr($line, $output_start_column)),
                             num   => $. });
-        }
 
         # Check buffer for matching qid's.
             # Check for matching qid's in the buffer.
@@ -124,6 +123,7 @@ while (<>) {
 
         # Erase content of %_seen.
         $qt->erase_seen_hash();
+        }  # End if ($match_email...)
 
         # Save line to trailing array if not added to %_seen hash.
         $qt->push_onto_trailing_array($line);
