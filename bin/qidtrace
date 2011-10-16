@@ -8,47 +8,57 @@ use Getopt::Long;
 use Sendmail::QidTrace qw/match_line/;
 
 our $VERSION = '0.02';
-our @matching_qids;  # TBD: Global var used in match_line().
+our @matching_qids;    # TBD: Global var used in match_line().
 
-my $DEBUG = 1;    # Set to 1 to enable debug stmts.
-                  # Set to 0 to run tests & for normal operation.
-
+my $DEBUG = 1;         # Set to 1 to enable debug stmts.
+                       # Set to 0 to run tests & for normal operation.
 
 my $prog = $0;
 $prog =~ s{\A.*/}{};    # strip leading path, if any
 my $window_size = 100;
-$window_size = 20 if $DEBUG;  #DBG
+$window_size = 20 if $DEBUG;    #DBG
 my $email_address;
-my $emit_line_numbers = 0;
+my $emit_line_numbers   = 0;
 my $output_start_column = 0;
-my $output_length       = 0;  # default to the whole line
+my $output_length       = 0;    # default to the whole line
 
-unless (GetOptions(
-            # input matching
-            'window-size=i' => \$window_size,
-            'match-pattern=s' => \$email_address,
-            # output formatting
-            'number-output' => \$emit_line_numbers,
-            # control what part of the match line we emit by calls to substr
-            'start-column=i'  => \$output_start_column,
-            'output-length=i' => \$output_length)) {
+unless (
+    GetOptions(
+
+        # input matching
+        'window-size=i'   => \$window_size,
+        'match-pattern=s' => \$email_address,
+
+        # output formatting
+        'number-output' => \$emit_line_numbers,
+
+        # control what part of the match line we emit by calls to substr
+        'start-column=i'  => \$output_start_column,
+        'output-length=i' => \$output_length
+    )
+    )
+{
     die usage();
 }
 unless ($email_address) {
     die "$prog died: No email address found on command line\n\n", usage();
 }
 
-my $qt = new Sendmail::QidTrace::Queue({match        => $email_address,
-                                        window_size  => $window_size,
-                                        line_numbers => $emit_line_numbers});
+my $qt = new Sendmail::QidTrace::Queue(
+    {   match        => $email_address,
+        window_size  => $window_size,
+        line_numbers => $emit_line_numbers
+    }
+);
 while (<>) {
     chomp;
     my $line;
     my $num;
     $qt->push_onto_leading_array($_);
-      #TBR? {   num  => $.,  #TBD: Use $qt for num instead of hash here?
-      #TBR? line => $_
-      #TBR? }
+
+    #TBR? {   num  => $.,  #TBD: Use $qt for num instead of hash here?
+    #TBR? line => $_
+    #TBR? }
     #TBR? );
 
     #DBG print "DBG.while: \$.: ,$.,\n" if ($DEBUG);
@@ -56,34 +66,41 @@ while (<>) {
     # Fill the _leading array before checking for matches.
     if ( $qt->size_of_leading_array > $window_size ) {
 
-        my $line = $qt->shift_off_leading_array();  #TBD: Keep or use hash from @_leading?
+        my $line = $qt->shift_off_leading_array()
+            ;    #TBD: Use this var, or use hash from @_leading?
 
-        my ($match_email, $match_qid) = match_line($email_address, $line);
-        if ($match_email || $match_qid) {
-            $qt->add_match({match => $match_email,
-                            qid   => $match_qid,
-                            line  => ($output_length
-                                      ? substr($line, $output_start_column, $output_length)
-                                      : substr($line, $output_start_column)),
-                            num   => $. });
+        my ( $match_email, $match_qid ) = match_line( $email_address, $line );
+        if ( $match_email || $match_qid ) {
+            $qt->add_match(
+                {   match => $match_email,
+                    qid   => $match_qid,
+                    line  => (
+                        $output_length
+                        ? substr( $line, $output_start_column,
+                            $output_length )
+                        : substr( $line, $output_start_column )
+                    ),
+                    num => $.
+                }
+            );
 
-        # Check buffer for matching qid's.
+            # Check buffer for matching qid's.
             # Check for matching qid's in the buffer.
-            my @emitted; #TBR
+            my @emitted;    #TBR
             foreach
                 my $lref ( $qt->get_leading_array, $qt->get_trailing_array )
             {
+
                 #TBR my %lh            = %$lref;
                 #TBR my $ln_from_buf   = $lh{line};
                 #TBR my $lnum_from_buf = $lh{num};
-                my $lnum_from_buf;  #TBR
+                my $lnum_from_buf;    #TBR
                 my $ln_from_buf = $lref;
 
                 #TBD: Removed this last clause from 'if' stmt below:
-                  #TBD: && ( !grep ( /$lnum_from_buf/, @emitted ) ) )
-                if (   defined $ln_from_buf
-                    && ( $ln_from_buf =~ /$match_qid/ )
-                     )
+                #TBD: && ( !grep ( /$lnum_from_buf/, @emitted ) ) )
+                if ( defined $ln_from_buf
+                    && ( $ln_from_buf =~ /$match_qid/ ) )
                 {
                     my ( $match_email, $match_qid )
                         = match_line( $email_address, $ln_from_buf );
@@ -116,34 +133,35 @@ while (<>) {
                 }
             }    # End inner loop: check entire buffer for matching qid's.
 
+            # Print all the lines stored in %_seen.
+            print_matching_lines() if ( $qt->get_seen_hash );
 
-
-        # Print all the lines stored in %_seen.
-        print_matching_lines()  if ($qt->get_seen_hash);
-
-        # Erase content of %_seen.
-        $qt->erase_seen_hash();
-        }  # End if ($match_email...)
+            # Erase content of %_seen.
+            $qt->erase_seen_hash();
+        }    # End if ($match_email...)
 
         # Save line to trailing array if not added to %_seen hash.
         $qt->push_onto_trailing_array($line);
         if ( $qt->size_of_trailing_array >= $window_size ) {
+
             #OK.ORG $line = ${ $qt->shift_off_trailing_array() }{line};
-            $qt->shift_off_trailing_array() ;
+            $qt->shift_off_trailing_array();
             ##TBD: Maybe check the line for matching qid before tossing.
         }
 
-    }  # End if (leading array > window_size )
-}  # End while()
-# $qt->drain_queue();
+    }    # End if (leading array > window_size )
+}    # End while()
 
+# $qt->drain_queue();
 
 # Print all matching lines from the %_seen hash; hash holds individual lines only.
 sub print_matching_lines {
     foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
-        #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
+
+    #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
         my $h = shift( @{ ${ $qt->get_seen_hash }{$k} } );
         print "${$h}{num}; " if ($emit_line_numbers);
+
         #ORG  print "${$h}{line}\n";
         print "${$h}{line}\n";
 
@@ -155,15 +173,13 @@ sub print_matching_lines {
     }
 }
 
-
-
-
 # =begin comment
 
 # Print all matching lines from the %_seen hash; hash holds refs to hashes of line & line number.
 sub print_matching_lines_0_HASH {
     foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
-        #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
+
+    #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
         my $h = shift( @{ ${ $qt->get_seen_hash }{$k} } );
         print "${$h}{num}; " if ($emit_line_numbers);
         print "${$h}{line}\n";
@@ -179,8 +195,6 @@ sub print_matching_lines_0_HASH {
 # =end comment
 
 # =cut
-
-
 
 =pod
 
@@ -204,8 +218,6 @@ The inner loop takes the qid as a key for the %_seen hash,
   and prints those two values.
 
 =cut
-
-
 
 exit;
 
