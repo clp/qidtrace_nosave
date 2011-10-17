@@ -105,9 +105,137 @@ sub add_match {
 #  should be called after the end of the input stream
 #  to flush out the queue.
 sub drain_queue {
-    my ($self) = @_;
+    my ($self)              = shift;
+    my $output_start_column = shift;
+    my $output_length       = shift;    # default to the whole line
+    my $eref                = shift;
+    my @emitted             = @$eref;
 
+    my %lh;
+    my $ltdref;
+    my @lines_to_drain;
+    push @lines_to_drain, $self->get_leading_array, $self->get_trailing_array;
+    foreach $ltdref (@lines_to_drain) {
+      #TBR %lh = %$ltdref;
+      #TBR my $ln   = $lh{line};
+      #TBR my $lnum = $lh{num};
+      my $ln   = $ltdref;
+      my $lnum ; #TBR
+
+        # Check for desired email addr in the current line.
+        if ( $ln =~ m/<$self->{match}>/ ) {
+
+            # Get email & qid from current line.
+            my ( $match_email, $match_qid )
+                = Sendmail::QidTrace::match_line( $self->{match}, $ln );
+
+            #DBG print "DBG.drain__email_match_found: \$lnum: ,$lnum,\n"
+            #DBG if ($DEBUG);
+            ## Add line from buffer w/ matching email addr to the "seen" hash.
+            $self->add_match(
+                {   match => $match_email,
+                    qid   => $match_qid,
+                    line  => (
+                        $output_length
+                        ? substr( $ln, $output_start_column, $output_length )
+                        : substr( $ln, $output_start_column )
+                    ),
+                    num => $lnum
+                }
+            );
+            push @emitted, $lnum;
+
+            # Check for lines w/ matching qid's in the buffer.
+            foreach my $ltd_from_buf (@lines_to_drain) {
+              #TBR %lh = %$ltd_from_buf;
+              #TBR my $ln_from_buf   = $lh{line};
+              #TBR my $lnum_from_buf = $lh{num};
+                my $ln_from_buf   = $ltd_from_buf;
+                my $lnum_from_buf;  #TBR
+
+                ## The third clause eliminates dupes of $match_email;
+                ## The fourth clause eliminates dupes that match $match_qid:
+                ##TBR: Removed the following clause from the 'if' stmt; TBD: fix it
+                ## by using line num from TBD-where?  I do not know real line
+                ## numbers from these lines in the buffer.
+                ## && ( !grep ( /$lnum_from_buf/, @emitted ) )
+                if (   defined $ln_from_buf
+                    && ( $ln_from_buf =~ /$match_qid/ )
+                    && ( $ln_from_buf ne $ln )
+                   )
+                {
+                    my ( $match_email, $match_qid )
+                        = Sendmail::QidTrace::match_line( $self->{match},
+                        $ln_from_buf );
+
+                    ## If current line has the matching email addr and a matching qid,
+                    ## skip it to avoid adding a duplicate line in o/p.
+                    ## Only add this line to the o/p when it is shifted off the
+                    ## leading array to check its email addr.
+                    next if ( $match_email eq $self->{match} );
+
+                    ##DBG print
+                    ##DBG "DBG.drain__qid_match_found: \$lnum_from_buf: ,$lnum_from_buf,\n"
+                    ##DBG if ($DEBUG);
+                    $self->add_match(
+                        {   match => $match_email,
+                            qid   => $match_qid,
+                            line  => (
+                                $output_length
+                                ? substr(
+                                    $ln_from_buf, $output_start_column,
+                                    $output_length
+                                    )
+                                : substr(
+                                    $ln_from_buf, $output_start_column
+                                )
+                            ),
+                            num => $lnum_from_buf
+                        }
+                    );
+                    push @emitted, $lnum_from_buf;
+                }
+                
+            # Print all the lines stored in %_seen.
+            print_matching_lines($self) if ( $self->get_seen_hash );
+
+            # Erase content of %_seen.
+            $self->erase_seen_hash();
+            #TBR }    # End if ($match_email...)
+
+
+            }    # End inner loop: check for matching qid's in buffer.
+
+            next;
+        }
+    }    # End outer loop: check for email addr matches in buffer.
+}    # End sub drain_queue.
+
+#
+
+
+
+# Print all matching lines from the %_seen hash; hash holds individual lines only.
+sub print_matching_lines {
+    my $self = shift;
+    foreach my $k ( sort keys %{ $self->get_seen_hash } ) {
+
+    #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
+        my $h = shift( @{ ${ $self->get_seen_hash }{$k} } );
+        ##TBA print "${$h}{num}; " if ($emit_line_numbers);
+
+        #ORG  print "${$h}{line}\n";
+        print "${$h}{line}\n";
+
+        foreach ( @{ ${ $self->get_seen_hash }{$k} } ) {
+            print "**** ";
+            ##TBA print "${$_}{num}; " if ($emit_line_numbers);
+            print "${$_}{line}\n";
+        }
+    }
 }
+
+
 
 #
 # Accessors to get & set the queue.

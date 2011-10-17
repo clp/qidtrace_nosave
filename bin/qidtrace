@@ -17,10 +17,13 @@ my $prog = $0;
 $prog =~ s{\A.*/}{};    # strip leading path, if any
 my $window_size = 100;
 $window_size = 20 if $DEBUG;    #DBG
+$window_size = 1400 if $DEBUG;    #DBG
 my $email_address;
 my $emit_line_numbers   = 0;
 my $output_start_column = 0;
 my $output_length       = 0;    # default to the whole line
+
+my @emitted; #TBR
 
 unless (
     GetOptions(
@@ -70,7 +73,7 @@ while (<>) {
             ;    #TBD: Use this var, or use hash from @_leading?
 
         my ( $match_email, $match_qid ) = match_line( $email_address, $line );
-        if ( $match_email || $match_qid ) {
+        if ( $match_email || $match_qid ) {  #TBD: Use only email?
             $qt->add_match(
                 {   match => $match_email,
                     qid   => $match_qid,
@@ -152,7 +155,8 @@ while (<>) {
     }    # End if (leading array > window_size )
 }    # End while()
 
-# $qt->drain_queue();
+$qt->drain_queue( $output_start_column, $output_length, \@emitted );
+
 
 # Print all matching lines from the %_seen hash; hash holds individual lines only.
 sub print_matching_lines {
