@@ -10,7 +10,7 @@ use Sendmail::QidTrace qw/match_line/;
 our $VERSION = '0.02';
 our @matching_qids;    # TBD: Global var used in match_line().
 
-my $DEBUG = 0;         # Set to 1 to enable debug stmts.
+my $DEBUG = 1;         # Set to 1 to enable debug stmts.
                        # Set to 0 to run tests & for normal operation.
 
 my $prog = $0;
@@ -57,22 +57,32 @@ while (<>) {
     chomp;
     my $line;
     my $num;
-    $qt->push_onto_leading_array($_);
-
-    #TBR? {   num  => $.,  #TBD: Use $qt for num instead of hash here?
-    #TBR? line => $_
-    #TBR? }
-    #TBR? );
+    $qt->push_onto_leading_array(
+    {   num  => $.,
+        line => $_
+    }
+    );
 
     #DBG print "DBG.while: \$.: ,$.,\n" if ($DEBUG);
 
     # Fill the _leading array before checking for matches.
     if ( $qt->size_of_leading_array > $window_size ) {
 
-        my $line = $qt->shift_off_leading_array()
-            ;    #TBD: Use this var, or use hash from @_leading?
+        #TBR2 my $line = $qt->shift_off_leading_array()
+        #TBR2 ;    #TBD: Use this var, or use hash from @_leading?
+
+        # Deref to get the hash & get value for keys 'line' & 'num'.
+        my $leadref = $qt->shift_off_leading_array();
+        my %leadh   = %$leadref;
+        my $line    = $leadh{line};
+        my $num     = $leadh{num};
 
         my ( $match_email, $match_qid ) = match_line( $email_address, $line );
+
+        next if ( $match_qid eq '' );    # No qid found: skip to next line.
+        ##TBD: Does this skip lines w/ addr & no qid?  Maybe move it down or rm?
+        ## Are there such lines?
+
         if ( $match_email || $match_qid ) {  #TBD: Use only email?
             $qt->add_match(
                 {   match => $match_email,
@@ -83,27 +93,30 @@ while (<>) {
                             $output_length )
                         : substr( $line, $output_start_column )
                     ),
-                    num => $.
+                    num => $num
                 }
             );
 
-            # Check buffer for matching qid's.
             # Check for matching qid's in the buffer.
             my @emitted;    #TBR
             foreach
                 my $lref ( $qt->get_leading_array, $qt->get_trailing_array )
-            {
+            { 
+                my %lh            = %$lref;
+                my $ln_from_buf   = $lh{line};
+                my $lnum_from_buf = $lh{num};
+                #TBR2 my $lnum_from_buf;    #TBR
+                #TBR2 my $ln_from_buf = $lref;
 
-                #TBR my %lh            = %$lref;
-                #TBR my $ln_from_buf   = $lh{line};
-                #TBR my $lnum_from_buf = $lh{num};
-                my $lnum_from_buf;    #TBR
-                my $ln_from_buf = $lref;
-
+                #TBD: Find all emitted lines & do not match a line that has
+                # been emitted already.
+                my @emitted_lines = ();
+                #
+                #
                 #TBD: Removed this last clause from 'if' stmt below:
-                #TBD: && ( !grep ( /$lnum_from_buf/, @emitted ) ) )
                 if ( defined $ln_from_buf
-                    && ( $ln_from_buf =~ /$match_qid/ ) )
+                    && ( $ln_from_buf =~ /$match_qid/ )
+                    && ( !grep ( /$lnum_from_buf/, @emitted ) ) )
                 {
                     my ( $match_email, $match_qid )
                         = match_line( $email_address, $ln_from_buf );
@@ -142,8 +155,8 @@ while (<>) {
             # Erase content of %_seen.
             $qt->erase_seen_hash();
 
-            # Get next line after printing a match.
-            next;
+            next;    # Read next i/p line after finding a matching email.
+                     # Do not push current line onto @_trailing.
         }    # End if ($match_email...)
 
         # Save line to trailing array if not added to %_seen hash.
