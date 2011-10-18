@@ -10,7 +10,7 @@ use Sendmail::QidTrace qw/match_line/;
 our $VERSION = '0.02';
 our @matching_qids;    # TBD: Global var used in match_line().
 
-my $DEBUG = 1;         # Set to 1 to enable debug stmts.
+my $DEBUG = 0;         # Set to 1 to enable debug stmts.
                        # Set to 0 to run tests & for normal operation.
 
 my $prog = $0;
