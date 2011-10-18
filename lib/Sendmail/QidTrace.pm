@@ -13,7 +13,8 @@ our @EXPORT_OK = qw/match_line/;
 # given an email address, and a sendmail log line,
 #  return a pair ($email, $qid) from the line where:
 #   the email matches if it is found any where in the line.
-#   the qid is extracted from several common log lines that have been found with qids
+#   the qid is extracted from several common log lines that have
+#   been found with qids
 # if either field is not found '' is returned in its place.
 
 sub match_line {
@@ -28,9 +29,9 @@ sub match_line {
     }
     else {
 
-        # The current line will be saved in %_seen, when the caller gets this
-        # email addr returned to it, and runs add_match().
-        # Also save the qid found on the line w/ the matching $email.
+        ## The current line will be saved in %_seen, when the caller gets this
+        ## email addr returned to it, and runs add_match().
+        ## Also save the qid found on the line w/ the matching $email.
         if ( $line =~ m/.*:? ([a-zA-Z\d]{14}).? ?.*/ ) {
             $qid = $1;
             push @Main::matching_qids, $qid;
@@ -38,11 +39,11 @@ sub match_line {
         }
     }
 
-# TBD: Compare current qid to saved qid's in @matching_qids, ie,
-# in the current buffer.
-# If a match, return the qid so it will be added to %_seen by caller.
-# If no match, return ''.
-# TBD: Rewrite as grep?: if (grep $current_qid, @Main::matching_qids ) {return...};
+    ## TBD: Compare current qid to saved qid's in @matching_qids, ie,
+    ## in the current buffer.
+    ## If a match, return the qid so it will be added to %_seen by caller.
+    ## If no match, return ''.
+    ## TBD: Rewrite as grep?: if (grep $current_qid, @Main::matching_qids ) {return...};
     if ( $line =~ m/.*:? ([a-zA-Z\d]{14}).? ?.*/ ) {
         my $current_qid = $1;
         foreach my $qid (@Main::matching_qids) {
@@ -56,7 +57,7 @@ sub match_line {
         $qid = '';
     }
 
-    # TBD: Remove the two assignments to $qid above, & add it here only.
+    ## TBD: Remove the two assignments to $qid above, & add it here only.
     return ( $email, $qid );
 }
 
@@ -71,7 +72,7 @@ sub new {
     my $queue = {
         _leading  => [],    # winsize matching lines before
         _trailing => [],    #                        and after
-        _seen     => {},    # track which lines we have already emitted
+        _seen => {},  # track which lines we have already emitted
     };
     my $args = shift || {};
     while ( my ( $k, $v ) = each(%$args) ) {
@@ -108,38 +109,44 @@ sub add_match {
 sub drain_queue {
     my ($self)              = shift;
     my $output_start_column = shift;
-    my $output_length       = shift;     # default to the whole line
+    my $output_length       = shift;  # default to the whole line
     my $eref                = shift;
-    my @emitted             = @$eref;    #TBR: Replace w/ $self->{line}?
+    my @emitted = @$eref;    #TBR: Replace w/ $self->{line}?
 
     my %lh;
     my $ltdref;
     my @lines_to_drain;
-    push @lines_to_drain, $self->get_leading_array, $self->get_trailing_array;
+    push @lines_to_drain, $self->get_leading_array,
+        $self->get_trailing_array;
     foreach $ltdref (@lines_to_drain) {
 
         #TBR %lh = %$ltdref;
         #TBR my $ln   = $lh{line};
         #TBR my $lnum = $lh{num};
         my $ln = $ltdref;
-        my $lnum;                        #TBR
+        my $lnum;    #TBR
 
         # Check for desired email addr in the current line.
         if ( $ln =~ m/<$self->{match}>/ ) {
 
             # Get email & qid from current line.
             my ( $match_email, $match_qid )
-                = Sendmail::QidTrace::match_line( $self->{match}, $ln );
+                = Sendmail::QidTrace::match_line( $self->{match},
+                $ln );
 
-            #DBG print "DBG.drain__email_match_found: \$lnum: ,$lnum,\n"
-            #DBG if ($DEBUG);
+            ##DBG print "DBG.drain__email_match_found: \$lnum: ,$lnum,\n"
+            ##DBG if ($DEBUG);
             ## Add line from buffer w/ matching email addr to the "seen" hash.
             $self->add_match(
                 {   match => $match_email,
                     qid   => $match_qid,
                     line  => (
                         $output_length
-                        ? substr( $ln, $output_start_column, $output_length )
+                        ? substr(
+                            $ln,
+                            $output_start_column,
+                            $output_length
+                            )
                         : substr( $ln, $output_start_column )
                     ),
                     num => $lnum
@@ -167,8 +174,8 @@ sub drain_queue {
                     && ( $ln_from_buf ne $ln ) )
                 {
                     my ( $match_email, $match_qid )
-                        = Sendmail::QidTrace::match_line( $self->{match},
-                        $ln_from_buf );
+                        = Sendmail::QidTrace::match_line(
+                        $self->{match}, $ln_from_buf );
 
                     ## If current line has the matching email addr and a matching qid,
                     ## skip it to avoid adding a duplicate line in o/p.
@@ -185,25 +192,28 @@ sub drain_queue {
                             line  => (
                                 $output_length
                                 ? substr(
-                                    $ln_from_buf, $output_start_column,
+                                    $ln_from_buf,
+                                    $output_start_column,
                                     $output_length
                                     )
                                 : substr(
-                                    $ln_from_buf, $output_start_column
+                                    $ln_from_buf,
+                                    $output_start_column
                                 )
                             ),
                             num => $lnum_from_buf
                         }
                     );
                     push @emitted, $lnum_from_buf;
-                }    # End block that adds a matching line to %_seen.
+                } # End block that adds a matching line to %_seen.
 
                 #TBR{ }    # End if ($match_email...)
 
-            }    # End inner loop: check for matching qid's in buffer.
+            } # End inner loop: check for matching qid's in buffer.
 
             # Print all the lines stored in %_seen.
-            print_matching_lines($self) if ( $self->get_seen_hash );
+            print_matching_lines($self)
+                if ( $self->get_seen_hash );
 
             # Erase content of %_seen.
             $self->erase_seen_hash();
@@ -220,7 +230,7 @@ sub print_matching_lines {
     my $self = shift;
     foreach my $k ( sort keys %{ $self->get_seen_hash } ) {
 
-    #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
+        ##TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
         my $h = shift( @{ ${ $self->get_seen_hash }{$k} } );
         ##TBA print "${$h}{num}; " if ($emit_line_numbers);
 
