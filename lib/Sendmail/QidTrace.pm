@@ -108,9 +108,9 @@ sub add_match {
 sub drain_queue {
     my ($self)              = shift;
     my $output_start_column = shift;
-    my $output_length       = shift;    # default to the whole line
+    my $output_length       = shift;     # default to the whole line
     my $eref                = shift;
-    my @emitted             = @$eref;  #TBR: Replace w/ $self->{line}?
+    my @emitted             = @$eref;    #TBR: Replace w/ $self->{line}?
 
     my %lh;
     my $ltdref;
@@ -122,7 +122,7 @@ sub drain_queue {
         #TBR my $ln   = $lh{line};
         #TBR my $lnum = $lh{num};
         my $ln = $ltdref;
-        my $lnum;    #TBR
+        my $lnum;                        #TBR
 
         # Check for desired email addr in the current line.
         if ( $ln =~ m/<$self->{match}>/ ) {
@@ -161,7 +161,7 @@ sub drain_queue {
                 ##TBR: Removed the following clause from the 'if' stmt; TBD: fix it
                 ## by using line num from TBD-where?  I do not know real line
                 ## numbers from these lines in the buffer.
-                  ## && ( !grep ( /$lnum_from_buf/, @emitted ) )
+                ## && ( !grep ( /$lnum_from_buf/, @emitted ) )
                 if (   defined $ln_from_buf
                     && ( $ln_from_buf =~ /$match_qid/ )
                     && ( $ln_from_buf ne $ln ) )
@@ -196,21 +196,21 @@ sub drain_queue {
                         }
                     );
                     push @emitted, $lnum_from_buf;
-                }  # End block that adds a matching line to %_seen.
+                }    # End block that adds a matching line to %_seen.
 
                 #TBR{ }    # End if ($match_email...)
 
             }    # End inner loop: check for matching qid's in buffer.
 
-                # Print all the lines stored in %_seen.
-                print_matching_lines($self) if ( $self->get_seen_hash );
+            # Print all the lines stored in %_seen.
+            print_matching_lines($self) if ( $self->get_seen_hash );
 
-                # Erase content of %_seen.
-                $self->erase_seen_hash();
+            # Erase content of %_seen.
+            $self->erase_seen_hash();
 
             next;
-        }  # End loop to check for email addr in current line.
-    }    # End outer loop: read every line in buffer.  check for email addr matches in buffer.
+        }    # End loop to check for email addr in current line.
+    } # End outer loop: read every line in buffer.  check for email addr matches in buffer.
 }    # End sub drain_queue.
 
 #
