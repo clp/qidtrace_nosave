@@ -17,7 +17,7 @@ my $prog = $0;
 $prog =~ s{\A.*/}{};    # strip leading path, if any
 my $window_size = 100;
 $window_size = 20 if $DEBUG;    #DBG
-$window_size = 1400 if $DEBUG;    #DBG
+#TMP $window_size = 1400 if $DEBUG;    #DBG
 my $email_address;
 my $emit_line_numbers   = 0;
 my $output_start_column = 0;
@@ -141,6 +141,9 @@ while (<>) {
 
             # Erase content of %_seen.
             $qt->erase_seen_hash();
+
+            # Get next line after printing a match.
+            next;
         }    # End if ($match_email...)
 
         # Save line to trailing array if not added to %_seen hash.
