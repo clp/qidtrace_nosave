@@ -78,9 +78,8 @@ while (<>) {
         my ( $match_email, $match_qid )
             = match_line( $email_address, $line );
 
-        next
-            if ( $match_qid eq '' )
-            ;    # No qid found: skip to next line.
+        # No qid found: skip to next line.
+        next if ( $match_qid eq '' );
         ##TBD: Does this skip lines w/ addr & no qid?  Maybe move it down or rm?
         ## Are there such lines?
 
@@ -112,7 +111,6 @@ while (<>) {
                 my %lh            = %$lref;
                 my $ln_from_buf   = $lh{line};
                 my $lnum_from_buf = $lh{num};
-
 
                 ##TBD: Will grep o/p be correct for lnum '120',
                 ## if @emitted contains '12'?
@@ -154,34 +152,30 @@ while (<>) {
                 }
             } # End inner loop: check entire buffer for matching qid's.
 
-     # Cleanup after finding a matching email, and after checking
-     # the entire buffer for matching lines.
-     # Print all the lines stored in %_seen.
+            ## Print o/p & cleanup after finding a matching email,
+            ## and after checking the entire buffer for matching lines.
             print_matching_lines() if ( $qt->get_seen_hash );
-
-            # Erase content of %_seen.
             $qt->erase_seen_hash();
 
-         # Erase the saved qids to avoid bogus duplicates at o/p.
-            @Main::matching_qids = ();
+            # Erase the saved qids to avoid bogus duplicates.
+            @main::matching_qids = ();
 
-            # Read next i/p line.
-            # Do not push current line onto @_trailing.
             next;
         }    # End if ($match_email...)
 
-       # Save line to trailing array if not added to %_seen hash.
+        ## Save line to trailing array if not added to %_seen hash.
         $qt->push_onto_trailing_array($line);
         if ( $qt->size_of_trailing_array >= $window_size ) {
-
             $qt->shift_off_trailing_array();
         }
 
     }    # End if (leading array > window_size )
 }    # End while()
 
-$qt->drain_queue( $output_start_column, $output_length,
-    $emit_line_numbers, \@emitted );
+$qt->drain_queue(
+    $output_start_column, $output_length,
+    $emit_line_numbers,   \@emitted
+);
 
 # Print all matching lines from the %_seen hash; hash holds individual lines only.
 sub print_matching_lines {

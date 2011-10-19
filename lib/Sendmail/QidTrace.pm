@@ -33,7 +33,7 @@ sub match_line {
         ## Also save the qid found on the line w/ the matching $email.
         if ( $line =~ m/.*:? ([a-zA-Z\d]{14}).? ?.*/ ) {
             $qid = $1;
-            push @Main::matching_qids, $qid;
+            push @main::matching_qids, $qid;
             return ( $email, $qid );
         }
     }
@@ -42,10 +42,10 @@ sub match_line {
     ## in the current buffer.
     ## If a match, return the qid so it will be added to %_seen by caller.
     ## If no match, return ''.
-    ## TBD: Rewrite as grep?: if (grep $current_qid, @Main::matching_qids ) {return...};
+    ## TBD: Rewrite as grep?: if (grep $current_qid, @main::matching_qids ) {return...};
     if ( $line =~ m/.*:? ([a-zA-Z\d]{14}).? ?.*/ ) {
         my $current_qid = $1;
-        foreach my $qid (@Main::matching_qids) {
+        foreach my $qid (@main::matching_qids) {
             if ( $current_qid eq $qid ) {
                 return ( $email, $qid );
             }
