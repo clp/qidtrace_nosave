@@ -109,6 +109,7 @@ sub drain_queue {
     my ($self)              = shift;
     my $output_start_column = shift;
     my $output_length       = shift;  # default to the whole line
+    my $emit_line_numbers   = shift;
     my $eref                = shift;
     my @emitted = @$eref;    #TBR: Replace w/ $self->{line}?
 
@@ -119,11 +120,11 @@ sub drain_queue {
         $self->get_trailing_array;
     foreach $ltdref (@lines_to_drain) {
 
-        #TBR %lh = %$ltdref;
-        #TBR my $ln   = $lh{line};
-        #TBR my $lnum = $lh{num};
-        my $ln = $ltdref;
-        my $lnum;    #TBR
+        %lh = %$ltdref;
+        my $ln   = $lh{line};
+        my $lnum = $lh{num};
+        #TBR my $ln = $ltdref;
+        #TBR my $lnum;    #TBR
 
         # Check for desired email addr in the current line.
         if ( $ln =~ m/<$self->{match}>/ ) {
@@ -156,11 +157,11 @@ sub drain_queue {
             # Check for lines w/ matching qid's in the buffer.
             foreach my $ltd_from_buf (@lines_to_drain) {
 
-                #TBR %lh = %$ltd_from_buf;
-                #TBR my $ln_from_buf   = $lh{line};
-                #TBR my $lnum_from_buf = $lh{num};
-                my $ln_from_buf = $ltd_from_buf;
-                my $lnum_from_buf;    #TBR
+                %lh = %$ltd_from_buf;
+                my $ln_from_buf   = $lh{line};
+                my $lnum_from_buf = $lh{num};
+                #TBR my $ln_from_buf = $ltd_from_buf;
+                #TBR my $lnum_from_buf;    #TBR
 
                 ## The third clause eliminates dupes of $match_email;
                 ## The fourth clause eliminates dupes that match $match_qid:
@@ -170,7 +171,8 @@ sub drain_queue {
                 ## && ( !grep ( /$lnum_from_buf/, @emitted ) )
                 if (   defined $ln_from_buf
                     && ( $ln_from_buf =~ /$match_qid/ )
-                    && ( $ln_from_buf ne $ln ) )
+                    && ( $ln_from_buf ne $ln )
+                    && ( !grep ( /$lnum_from_buf/, @emitted ) ) )
                 {
                     my ( $match_email, $match_qid )
                         = Sendmail::QidTrace::match_line(
@@ -211,7 +213,7 @@ sub drain_queue {
             } # End inner loop: check for matching qid's in buffer.
 
             # Print all the lines stored in %_seen.
-            print_matching_lines($self)
+            print_matching_lines($emit_line_numbers, $self)
                 if ( $self->get_seen_hash );
 
             # Erase content of %_seen.
@@ -226,19 +228,18 @@ sub drain_queue {
 
 # Print all matching lines from the %_seen hash; hash holds individual lines only.
 sub print_matching_lines {
+    my $emit_line_numbers = shift;
     my $self = shift;
     foreach my $k ( sort keys %{ $self->get_seen_hash } ) {
 
         ##TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
         my $h = shift( @{ ${ $self->get_seen_hash }{$k} } );
-        ##TBA print "${$h}{num}; " if ($emit_line_numbers);
-
-        #ORG  print "${$h}{line}\n";
+        print "${$h}{num}; " if ($emit_line_numbers);
         print "${$h}{line}\n";
 
         foreach ( @{ ${ $self->get_seen_hash }{$k} } ) {
             print "**** ";
-            ##TBA print "${$_}{num}; " if ($emit_line_numbers);
+            print "${$_}{num}; " if ($emit_line_numbers);
             print "${$_}{line}\n";
         }
     }
