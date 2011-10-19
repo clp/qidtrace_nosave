@@ -22,7 +22,6 @@ sub match_line {
     my $line  = shift;
     my $qid;
 
-    #TBR our @matching_qids;
     return ( '', '' ) unless $line;
     if ( $line !~ m/<$email>/ ) {
         $email = '';

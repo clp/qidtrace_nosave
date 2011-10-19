@@ -8,23 +8,24 @@ use Getopt::Long;
 use Sendmail::QidTrace qw/match_line/;
 
 our $VERSION = '0.02';
-our @matching_qids;    # TBD: Global var used in QidTrace.pm's match_line().
+our @matching_qids
+    ;    # TBD: Global var used in QidTrace.pm's match_line().
 
-my $DEBUG = 1;         # Set to 1 to enable debug stmts.
-                       # Set to 0 to run tests & for normal operation.
-
+my $DEBUG = 1;    # Set to 1 to enable debug stmts.
+                  # Set to 0 to run tests & for normal operation.
 
 my $prog = $0;
 $prog =~ s{\A.*/}{};    # strip leading path, if any
 my $window_size = 100;
 $window_size = 20 if $DEBUG;    #DBG
+
 #TMP $window_size = 1400 if $DEBUG;    #DBG
 my $email_address;
 my $emit_line_numbers   = 0;
 my $output_start_column = 0;
 my $output_length       = 0;    # default to the whole line
 
-my @emitted; #TBR
+my @emitted;                    #TBR
 
 unless (
     GetOptions(
@@ -36,7 +37,7 @@ unless (
         # output formatting
         'number-output' => \$emit_line_numbers,
 
-        # control what part of the match line we emit by calls to substr
+ # control what part of the match line we emit by calls to substr
         'start-column=i'  => \$output_start_column,
         'output-length=i' => \$output_length
     )
@@ -45,7 +46,8 @@ unless (
     die usage();
 }
 unless ($email_address) {
-    die "$prog died: No email address found on command line\n\n", usage();
+    die "$prog died: No email address found on command line\n\n",
+        usage();
 }
 
 my $qt = new Sendmail::QidTrace::Queue(
@@ -59,9 +61,9 @@ while (<>) {
     my $line;
     my $num;
     $qt->push_onto_leading_array(
-    {   num  => $.,
-        line => $_
-    }
+        {   num  => $.,
+            line => $_
+        }
     );
 
     #DBG print "DBG.while: \$.: ,$.,\n" if ($DEBUG);
@@ -69,30 +71,38 @@ while (<>) {
     # Fill the _leading array before checking for matches.
     if ( $qt->size_of_leading_array > $window_size ) {
 
-        #TBR2 my $line = $qt->shift_off_leading_array()
-        #TBR2 ;    #TBD: Use this var, or use hash from @_leading?
+       #TBR2 my $line = $qt->shift_off_leading_array()
+       #TBR2 ;    #TBD: Use this var, or use hash from @_leading?
 
-        # Deref to get the hash & get value for keys 'line' & 'num'.
+     # Deref to get the hash & get value for keys 'line' & 'num'.
         my $leadref = $qt->shift_off_leading_array();
         my %leadh   = %$leadref;
         my $line    = $leadh{line};
         my $num     = $leadh{num};
 
-        my ( $match_email, $match_qid ) = match_line( $email_address, $line );
+        my ( $match_email, $match_qid )
+            = match_line( $email_address, $line );
 
-        next if ( $match_qid eq '' );    # No qid found: skip to next line.
+        next
+            if ( $match_qid eq '' )
+            ;    # No qid found: skip to next line.
         ##TBD: Does this skip lines w/ addr & no qid?  Maybe move it down or rm?
         ## Are there such lines?
 
-        if ( $match_email || $match_qid ) {  #TBD: Use only email?
+        if ( $match_email || $match_qid ) { #TBD: Use only email?
             $qt->add_match(
                 {   match => $match_email,
                     qid   => $match_qid,
                     line  => (
                         $output_length
-                        ? substr( $line, $output_start_column,
-                            $output_length )
-                        : substr( $line, $output_start_column )
+                        ? substr(
+                            $line,
+                            $output_start_column,
+                            $output_length
+                            )
+                        : substr(
+                            $line, $output_start_column
+                        )
                     ),
                     num => $num
                 }
@@ -100,22 +110,26 @@ while (<>) {
 
             # Check for matching qid's in the buffer.
             #TBR? my @emitted;    #TBR
-            foreach
-                my $lref ( $qt->get_leading_array, $qt->get_trailing_array )
+            foreach my $lref (
+                $qt->get_leading_array,
+                $qt->get_trailing_array
+                )
             {
                 my %lh            = %$lref;
                 my $ln_from_buf   = $lh{line};
                 my $lnum_from_buf = $lh{num};
+
                 #TBR2 my $lnum_from_buf;    #TBR
                 #TBR2 my $ln_from_buf = $lref;
 
-                #TBD: Will grep o/p be correct for line 120 if @emitted contains 12?
-                if ( defined $ln_from_buf
+#TBD: Will grep o/p be correct for line 120 if @emitted contains 12?
+                if (   defined $ln_from_buf
                     && ( $ln_from_buf =~ /$match_qid/ )
                     && ( !grep ( /$lnum_from_buf/, @emitted ) ) )
                 {
                     my ( $match_email, $match_qid )
-                        = match_line( $email_address, $ln_from_buf );
+                        = match_line( $email_address,
+                        $ln_from_buf );
 
                     ## Skip current line to avoid adding a duplicate line in o/p,
                     ## if it has the matching email addr and a matching qid.
@@ -131,11 +145,13 @@ while (<>) {
                             line  => (
                                 $output_length
                                 ? substr(
-                                    $ln_from_buf, $output_start_column,
+                                    $ln_from_buf,
+                                    $output_start_column,
                                     $output_length
                                     )
                                 : substr(
-                                    $ln_from_buf, $output_start_column
+                                    $ln_from_buf,
+                                    $output_start_column
                                 )
                             ),
                             num => $lnum_from_buf
@@ -143,17 +159,17 @@ while (<>) {
                     );
                     push @emitted, $lnum_from_buf;
                 }
-            }    # End inner loop: check entire buffer for matching qid's.
+            } # End inner loop: check entire buffer for matching qid's.
 
-            # Cleanup after finding a matching email, and after checking
-            # the entire buffer for matching lines.
-            # Print all the lines stored in %_seen.
+     # Cleanup after finding a matching email, and after checking
+     # the entire buffer for matching lines.
+     # Print all the lines stored in %_seen.
             print_matching_lines() if ( $qt->get_seen_hash );
 
             # Erase content of %_seen.
             $qt->erase_seen_hash();
 
-            # Erase the saved qids to avoid bogus duplicates at o/p.
+         # Erase the saved qids to avoid bogus duplicates at o/p.
             @Main::matching_qids = ();
 
             # Read next i/p line.
@@ -161,7 +177,7 @@ while (<>) {
             next;
         }    # End if ($match_email...)
 
-        # Save line to trailing array if not added to %_seen hash.
+       # Save line to trailing array if not added to %_seen hash.
         $qt->push_onto_trailing_array($line);
         if ( $qt->size_of_trailing_array >= $window_size ) {
 
@@ -172,14 +188,14 @@ while (<>) {
     }    # End if (leading array > window_size )
 }    # End while()
 
-$qt->drain_queue( $output_start_column, $output_length, \@emitted );
-
+$qt->drain_queue( $output_start_column, $output_length,
+    \@emitted );
 
 # Print all matching lines from the %_seen hash; hash holds individual lines only.
 sub print_matching_lines {
     foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
 
-    #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
+#TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
         my $h = shift( @{ ${ $qt->get_seen_hash }{$k} } );
         print "${$h}{num}; " if ($emit_line_numbers);
 
@@ -200,7 +216,7 @@ sub print_matching_lines {
 sub print_matching_lines_0_HASH {
     foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
 
-    #TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
+#TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
         my $h = shift( @{ ${ $qt->get_seen_hash }{$k} } );
         print "${$h}{num}; " if ($emit_line_numbers);
         print "${$h}{line}\n";
