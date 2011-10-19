@@ -182,6 +182,10 @@ sub drain_queue {
                     ## skip it to avoid adding a duplicate line in o/p.
                     ## Only add this line to the o/p when it is shifted off the
                     ## leading array to check its email addr.
+                    ## TBD: This creates a problem (p.6.) when lines
+                    ## with same qid have "from" uid = "to" uid:
+                    ## the second line is not indented below the
+                    ## first line.
                     next if ( $match_email eq $self->{match} );
 
                     ##DBG print
@@ -226,7 +230,7 @@ sub drain_queue {
 
 #
 
-# Print all matching lines from the %_seen hash; hash holds individual lines only.
+# Print all matching lines from the %_seen hash.
 sub print_matching_lines {
     my $emit_line_numbers = shift;
     my $self = shift;
