@@ -7,7 +7,7 @@ use Getopt::Long;
 
 use Sendmail::QidTrace qw/match_line/;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our @matching_qids;    # Global var for QidTrace match_line().
 
 my $DEBUG = 0;    # Set to 1 to enable debug stmts.

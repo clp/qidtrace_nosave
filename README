@@ -51,4 +51,12 @@ New code will be built in qidtrace_nosave, and qidtrace2 will be
 abandoned.
 
 
+Version 0.03, Wed2011_1019
+
+Basic functionality works for some inputs, and not all tests pass.
+Lots of temporary debugging code is in the files, waiting
+to be refactored.
+
+
+
 
