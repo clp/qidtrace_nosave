@@ -1,4 +1,4 @@
-qidtrace_nosave  version 0.02
+qidtrace_nosave  version 0.03
 ===============================
 
 qidtrace_nosave is a filter for sendmail log files.  It follows
