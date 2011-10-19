@@ -11,12 +11,12 @@ our $VERSION = '0.02';
 our @matching_qids
     ;    # TBD: Global var used in QidTrace.pm's match_line().
 
-my $DEBUG = 1;    # Set to 1 to enable debug stmts.
+my $DEBUG = 0;    # Set to 1 to enable debug stmts.
                   # Set to 0 to run tests & for normal operation.
 
 my $prog = $0;
 $prog =~ s{\A.*/}{};    # strip leading path, if any
-my $window_size = 100;
+my $window_size = 2600;
 $window_size = 20 if $DEBUG;    #DBG
 
 #TMP $window_size = 1400 if $DEBUG;    #DBG
@@ -189,7 +189,7 @@ while (<>) {
 }    # End while()
 
 $qt->drain_queue( $output_start_column, $output_length,
-    \@emitted );
+    $emit_line_numbers, \@emitted );
 
 # Print all matching lines from the %_seen hash; hash holds individual lines only.
 sub print_matching_lines {
