@@ -1,20 +1,22 @@
 qidtrace_nosave  version 0.02
 ===============================
 
-qidtrace is a filter for sendmail log files.
-It follows sendmail's queue id strings so that sequences of log
-lines can be found.
+qidtrace_nosave is a filter for sendmail log files.  It follows
+sendmail's queue id strings so that sequences of log lines can be
+found.
+
+This program finds a group of matching lines, then prints it,
+then continues searching for and printing more such groups.  It
+does not collect and save the o/p data for printing at the end of
+the program.
+
+It is based on code in qidtrace, which does save its o/p data
+and print it after all groups of matching lines have been found.
 
 The program reads the input sendmail log file in one pass.
 
-It does not save the o/p data and print it after all groups
-of matching lines have been found.
-It prints each group of matching lines when they are found,
-then continues to look for more groups of matching lines
-until finished with the i/p file.
-
-The input data file is maillog.mx.
-The initial release provides an abbreviated 9999-line input file.
+The input data file is maillog.mx.  The initial release provides
+an abbreviated 999-line input file.
 
 Execute the tests using prove (specify the local lib dir
 if the module is not installed in the @INC path):
