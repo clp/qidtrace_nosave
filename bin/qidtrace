@@ -16,6 +16,7 @@ my $DEBUG = 0;    # Set to 1 to enable debug stmts.
 my $prog = $0;
 $prog =~ s{\A.*/}{};    # strip leading path, if any
 my $window_size = 1400;
+$window_size = 200;    #DBG
 $window_size = 20 if $DEBUG;    #DBG
 
 my $email_address;
@@ -79,7 +80,9 @@ while (<>) {
             = match_line( $email_address, $line );
 
         # No qid found: skip to next line.
-        next if ( $match_qid eq '' );
+        #TBF.ERROR.causing.no.lines.push.to.trailing.array  next if ( $match_qid eq '' );
+        #TBF next if ( $match_qid eq '' );
+          #TBF Did I change the logic in match_line so it does not return qid unless there is a match?
         ##TBD: Does this skip lines w/ addr & no qid?  Maybe move it down or rm?
         ## Are there such lines?
 
@@ -181,11 +184,9 @@ $qt->drain_queue(
 sub print_matching_lines {
     foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
 
-#TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
+        #TBF: Specifying cmd line param '-s' can affect the sorted o/p.
         my $h = shift( @{ ${ $qt->get_seen_hash }{$k} } );
         print "${$h}{num}; " if ($emit_line_numbers);
-
-        #ORG  print "${$h}{line}\n";
         print "${$h}{line}\n";
 
         foreach ( @{ ${ $qt->get_seen_hash }{$k} } ) {
@@ -195,6 +196,26 @@ sub print_matching_lines {
         }
     }
 }
+
+
+
+sub print_matching_lines_2 {
+  #TMP.3 my $qt = shift;
+    foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
+
+#TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
+        my $h = shift( @{ ${ $qt->get_seen_hash }{$k} } );
+        print "${$h}{num}; " if ($emit_line_numbers);
+        print "${$h}{line}\n";
+
+        foreach ( @{ ${ $qt->get_seen_hash }{$k} } ) {
+            print "**** ";
+            print "${$_}{num}; " if ($emit_line_numbers);
+            print "${$_}{line}\n";
+        }
+    }
+}
+
 
 # =begin comment
 
