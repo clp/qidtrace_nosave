@@ -223,28 +223,9 @@ sub drain_queue {
     } # End outer loop: read every line in buffer.
 }    # End sub drain_queue.
 
-#
 
-# Print all matching lines from the %_seen hash.
-sub print_matching_lines {
-    my $emit_line_numbers = shift;
-    my $self = shift;
-    foreach my $k ( sort keys %{ $self->get_seen_hash } ) {
 
-        ##TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
-        my $h = shift( @{ ${ $self->get_seen_hash }{$k} } );
-        print "${$h}{num}; " if ($emit_line_numbers);
-        print "${$h}{line}\n";
 
-        foreach ( @{ ${ $self->get_seen_hash }{$k} } ) {
-            print "**** ";
-            print "${$_}{num}; " if ($emit_line_numbers);
-            print "${$_}{line}\n";
-        }
-    }
-}
-
-#
 # Accessors to get & set the queue.
 sub push_onto_leading_array {
     my $self = shift;
