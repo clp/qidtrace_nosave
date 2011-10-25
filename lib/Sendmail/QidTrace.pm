@@ -111,7 +111,7 @@ sub drain_queue {
     my $output_length       = shift;  # default to the whole line
     my $emit_line_numbers   = shift;
     my $eref                = shift;
-    my @emitted = @$eref;    #TBR: Replace w/ $self->{line}?
+    my @emitted = @$eref;
 
     my %lh;
     my $ltdref;
@@ -123,8 +123,6 @@ sub drain_queue {
         %lh = %$ltdref;
         my $ln   = $lh{line};
         my $lnum = $lh{num};
-        #TBR my $ln = $ltdref;
-        #TBR my $lnum;    #TBR
 
         # Check for desired email addr in the current line.
         if ( $ln =~ m/<$self->{match}>/ ) {
@@ -160,15 +158,9 @@ sub drain_queue {
                 %lh = %$ltd_from_buf;
                 my $ln_from_buf   = $lh{line};
                 my $lnum_from_buf = $lh{num};
-                #TBR my $ln_from_buf = $ltd_from_buf;
-                #TBR my $lnum_from_buf;    #TBR
 
                 ## The third clause eliminates dupes of $match_email;
                 ## The fourth clause eliminates dupes that match $match_qid:
-                ##TBR: Removed the following clause from the 'if' stmt; TBD: fix it
-                ## by using line num from TBD-where?  I do not know real line
-                ## numbers from these lines in the buffer.
-                ## && ( !grep ( /$lnum_from_buf/, @emitted ) )
                 if (   defined $ln_from_buf
                     && ( $ln_from_buf =~ /$match_qid/ )
                     && ( $ln_from_buf ne $ln )
@@ -212,20 +204,23 @@ sub drain_queue {
                     push @emitted, $lnum_from_buf;
                 } # End block that adds a matching line to %_seen.
 
-                #TBR{ }    # End if ($match_email...)
-
             } # End inner loop: check for matching qid's in buffer.
 
             # Print all the lines stored in %_seen.
-            print_matching_lines($emit_line_numbers, $self)
-                if ( $self->get_seen_hash );
+            #TMP.1 print_matching_lines($emit_line_numbers, $self)
+            #TMP.1 if ( $self->get_seen_hash );
+
+                #TBD: testing. Wed2011_1019_13:30 
+                #OK main::print_matching_lines_2($self) if ( $self->get_seen_hash );
+                #OK main::print_matching_lines_2() if ( $self->get_seen_hash );
+                main::print_matching_lines() if ( $self->get_seen_hash );
 
             # Erase content of %_seen.
             $self->erase_seen_hash();
 
             next;
         }    # End loop to check for email addr in current line.
-    } # End outer loop: read every line in buffer.  check for email addr matches in buffer.
+    } # End outer loop: read every line in buffer.
 }    # End sub drain_queue.
 
 #
@@ -305,8 +300,6 @@ sub get_seen_hash {
 
 sub erase_seen_hash {
     my $self = shift;
-
-    #TBR? return $self->{_seen} = ();
     $self->{_seen} = ();
 }
 
