@@ -16,8 +16,8 @@ my $DEBUG = 0;    # Set to 1 to enable debug stmts.
 my $prog = $0;
 $prog =~ s{\A.*/}{};    # strip leading path, if any
 my $window_size = 1400;
-$window_size = 200;    #DBG
-$window_size = 10 if $DEBUG;    #DBG
+$window_size = 1400;    #DBG
+$window_size = 20 if $DEBUG;    #DBG
 
 my $email_address;
 my $emit_line_numbers   = 0;
@@ -25,6 +25,7 @@ my $output_start_column = 0;
 my $output_length       = 0;    # default to the whole line
 
 my @emitted;
+#TMP.Wed2011_1026_00:18      my %lh;
 
 unless (
     GetOptions(
@@ -112,10 +113,9 @@ while (<>) {
                 )
             {
                 #F.ORG.Tue2011_1025_15:55  my %lh            = %$lref;
-                my %lh;
                 my $lh            = $lref;
-                my $ln_from_buf   = $lh{line};
-                my $lnum_from_buf = $lh{num};
+                my $ln_from_buf   = $lh->{line};
+                my $lnum_from_buf = $lh->{num};
                 #F my $ln_from_buf   = $lref{line};
                 #F my $lnum_from_buf = $lref{num};
 
@@ -170,16 +170,12 @@ while (<>) {
             next;
         }    # End if ($match_email...)
 
-        ## Save line to trailing array if not added to %_seen hash.
-        #TBR $qt->push_onto_trailing_array($line);
+        ## Save hash ref to trailing array if not added to %_seen hash.
         $qt->push_onto_trailing_array(
             {   num  => $num,
                 line => $line
             }
         );
-            #TBR {   num  => $.,
-            #TBR line => $_
-            #TBR }
         if ( $qt->size_of_trailing_array >= $window_size ) {
             $qt->shift_off_trailing_array();
         }

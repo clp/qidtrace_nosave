@@ -113,7 +113,7 @@ sub drain_queue {
     my $eref                = shift;
     my @emitted = @$eref;
 
-    my %lh;
+    #TMP.Wed2011_1026_00:17    my %lh;
     my $ltdref;
     my @lines_to_drain;
     push @lines_to_drain, $self->get_leading_array,
@@ -123,8 +123,8 @@ sub drain_queue {
         my $lh = $ltdref;
         #F my $ln   = $lh{line};
         #F my $lnum = $lh{num};
-        my $ln   = $$lh{line};
-        my $lnum = $$lh{num};
+        my $ln   = $lh->{line};
+        my $lnum = $lh->{num};
 
         # Check for desired email addr in the current line.
         if ( $ln =~ m/<$self->{match}>/ ) {
