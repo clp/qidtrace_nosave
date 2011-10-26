@@ -120,9 +120,11 @@ sub drain_queue {
         $self->get_trailing_array;
     foreach $ltdref (@lines_to_drain) {
 
-        %lh = %$ltdref;
-        my $ln   = $lh{line};
-        my $lnum = $lh{num};
+        my $lh = $ltdref;
+        #F my $ln   = $lh{line};
+        #F my $lnum = $lh{num};
+        my $ln   = $$lh{line};
+        my $lnum = $$lh{num};
 
         # Check for desired email addr in the current line.
         if ( $ln =~ m/<$self->{match}>/ ) {
@@ -155,9 +157,9 @@ sub drain_queue {
             # Check for lines w/ matching qid's in the buffer.
             foreach my $ltd_from_buf (@lines_to_drain) {
 
-                %lh = %$ltd_from_buf;
-                my $ln_from_buf   = $lh{line};
-                my $lnum_from_buf = $lh{num};
+                my $lh = $ltd_from_buf;
+                my $ln_from_buf   = $$lh{line};
+                my $lnum_from_buf = $$lh{num};
 
                 ## The third clause eliminates dupes of $match_email;
                 ## The fourth clause eliminates dupes that match $match_qid:
@@ -177,7 +179,7 @@ sub drain_queue {
                     ## TBD: This creates a problem (p.6.) when lines
                     ## with same qid have "from" uid = "to" uid:
                     ## the second line is not indented below the
-                    ## first line.
+                    ## first line, even though their qid's match.
                     next if ( $match_email eq $self->{match} );
 
                     ##DBG print
@@ -229,8 +231,14 @@ sub drain_queue {
 # Accessors to get & set the queue.
 sub push_onto_leading_array {
     my $self = shift;
-    my $line = shift;
-    push @{ $self->{_leading} }, $line;
+    my $href = shift;
+    push @{ $self->{_leading} }, $href;
+}
+
+sub push_onto_trailing_array {
+    my $self = shift;
+    my $href = shift;
+    push @{ $self->{_trailing} }, $href;
 }
 
 sub shift_off_leading_array {
@@ -241,12 +249,6 @@ sub shift_off_leading_array {
 sub shift_off_trailing_array {
     my $self = shift;
     return shift @{ $self->{_trailing} };
-}
-
-sub push_onto_trailing_array {
-    my $self = shift;
-    my $line = shift;
-    push @{ $self->{_trailing} }, $line;
 }
 
 sub get_leading_array {
