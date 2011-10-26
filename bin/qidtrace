@@ -17,7 +17,7 @@ my $prog = $0;
 $prog =~ s{\A.*/}{};    # strip leading path, if any
 my $window_size = 1400;
 $window_size = 200;    #DBG
-$window_size = 20 if $DEBUG;    #DBG
+$window_size = 10 if $DEBUG;    #DBG
 
 my $email_address;
 my $emit_line_numbers   = 0;
@@ -111,9 +111,13 @@ while (<>) {
                 $qt->get_trailing_array
                 )
             {
-                my %lh            = %$lref;
+                #F.ORG.Tue2011_1025_15:55  my %lh            = %$lref;
+                my %lh;
+                my $lh            = $lref;
                 my $ln_from_buf   = $lh{line};
                 my $lnum_from_buf = $lh{num};
+                #F my $ln_from_buf   = $lref{line};
+                #F my $lnum_from_buf = $lref{num};
 
                 ##TBD: Will grep o/p be correct for lnum '120',
                 ## if @emitted contains '12'?
@@ -167,7 +171,15 @@ while (<>) {
         }    # End if ($match_email...)
 
         ## Save line to trailing array if not added to %_seen hash.
-        $qt->push_onto_trailing_array($line);
+        #TBR $qt->push_onto_trailing_array($line);
+        $qt->push_onto_trailing_array(
+            {   num  => $num,
+                line => $line
+            }
+        );
+            #TBR {   num  => $.,
+            #TBR line => $_
+            #TBR }
         if ( $qt->size_of_trailing_array >= $window_size ) {
             $qt->shift_off_trailing_array();
         }
@@ -180,7 +192,9 @@ $qt->drain_queue(
     $emit_line_numbers,   \@emitted
 );
 
-# Print all matching lines from the %_seen hash; hash holds individual lines only.
+#TBR # Print all matching lines from the %_seen hash; hash holds individual lines only.
+# Print all matching lines from the %_seen hash; hash holds refs to hashes of line & line number.
+#TBD: Remove sort b/c all keys for %_seen are the same = current qid?
 sub print_matching_lines {
     foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
 
@@ -198,52 +212,12 @@ sub print_matching_lines {
 }
 
 
-
-sub print_matching_lines_2 {
-  #TMP.3 my $qt = shift;
-    foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
-
-#TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
-        my $h = shift( @{ ${ $qt->get_seen_hash }{$k} } );
-        print "${$h}{num}; " if ($emit_line_numbers);
-        print "${$h}{line}\n";
-
-        foreach ( @{ ${ $qt->get_seen_hash }{$k} } ) {
-            print "**** ";
-            print "${$_}{num}; " if ($emit_line_numbers);
-            print "${$_}{line}\n";
-        }
-    }
-}
-
-
-# =begin comment
-
-# Print all matching lines from the %_seen hash; hash holds refs to hashes of line & line number.
-sub print_matching_lines_0_HASH {
-    foreach my $k ( sort keys %{ $qt->get_seen_hash } ) {
-
-#TBF: Specifying cmd line param '-s' can affect the sorted o/p.  Fix this.
-        my $h = shift( @{ ${ $qt->get_seen_hash }{$k} } );
-        print "${$h}{num}; " if ($emit_line_numbers);
-        print "${$h}{line}\n";
-
-        foreach ( @{ ${ $qt->get_seen_hash }{$k} } ) {
-            print "**** ";
-            print "${$_}{num}; " if ($emit_line_numbers);
-            print "${$_}{line}\n";
-        }
-    }
-}
-
-# =end comment
-
-# =cut
-
 =pod
 
 =head2 Print All Matching Lines
 
+#TBD: Rewrite this based on *nosave* code, which prints one set of matches at a time.
+#
 Use two loops to print the collection of o/p lines, grouped 
 and sorted by qid.
 
